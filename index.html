@@ -10,6 +10,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- EmailJS SDK -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <!-- Paystack Inline JS SDK -->
+    <script src="https://js.paystack.co/v1/inline.js"></script>
     <script type="text/javascript">
         (function() {
             emailjs.init("YOUR_PUBLIC_KEY");
@@ -910,11 +912,11 @@
         <div class="container">
             <h2 class="section-title" style="text-align: center;">Get In <span>Touch</span></h2>
             <div class="social-grid">
-                <a href="https://wa.me/2349130962622" target="_blank" rel="noopener noreferrer" class="social-card whatsapp">
+                <a href="https://wa.me/234xxxxxxxxxx" target="_blank" rel="noopener noreferrer" class="social-card whatsapp">
                     <i class="fa-brands fa-whatsapp social-icon"></i>
                     <div class="social-info">
                         <h3>WhatsApp</h3>
-                        <p>+234 913 096 2622</p>
+                        <p>+234 xxx xxx xxxx</p>
                     </div>
                 </a>
                 <a href="mailto:ifcreatives@gmail.com" class="social-card email">
@@ -924,14 +926,14 @@
                         <p>ifcreatives@gmail.com</p>
                     </div>
                 </a>
-                <a href="https://www.tiktok.com/@aisam967" target="_blank" rel="noopener noreferrer" class="social-card tiktok">
+                <a href="https://www.tiktok.com/@if.creatives3" target="_blank" rel="noopener noreferrer" class="social-card tiktok">
                     <i class="fa-brands fa-tiktok social-icon"></i>
                     <div class="social-info">
                         <h3>TikTok</h3>
-                        <p>@aisam967</p>
+                        <p>@if.creatives3</p>
                     </div>
                 </a>
-                <a href="https://web.facebook.com/profile.php?id=61593568964690" target="_blank" rel="noopener noreferrer" class="social-card facebook">
+                <a href="https://web.facebook.com/profile.php?id=9384957393" target="_blank" rel="noopener noreferrer" class="social-card facebook">
                     <i class="fa-brands fa-facebook social-icon"></i>
                     <div class="social-info">
                         <h3>Facebook</h3>
@@ -1050,20 +1052,56 @@
             payModal.classList.add('active');
         });
 
+        // Live Paystack Popup Checkout Integration with Background Blob Download
         paystackForm.addEventListener('submit', (e) => {
             e.preventDefault();
+            const buyerEmail = document.getElementById('buyerEmail').value;
+            
+            // Generate payment reference starting with "IFDESIGN-"
             const randomNum = Math.floor(100000 + Math.random() * 900000);
             const paymentRef = `IFDESIGN-${randomNum}`;
             
-            alert(`Payment Gateway (Paystack Simulation)\nRef: ${paymentRef}\nAmount: ₦500\nStatus: SUCCESSFUL!`);
             payModal.classList.remove('active');
 
-            const a = document.createElement('a');
-            a.href = selectedImageSrc;
-            a.download = `${paymentRef}.jpg`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            let handler = PaystackPop.setup({
+                key: 'pk_test_8e350f62114983f1cd23b0944668d435a6e74214',
+                email: buyerEmail,
+                amount: 50000, // ₦500 in kobo
+                currency: 'NGN',
+                ref: paymentRef,
+                callback: function(response) {
+                    alert('Payment successful! Reference: ' + response.reference);
+                    
+                    // Fetch image as blob to force secure download without opening a new tab
+                    fetch(selectedImageSrc)
+                        .then(res => res.blob())
+                        .then(blob => {
+                            const blobUrl = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = blobUrl;
+                            a.download = `${response.reference}.jpg`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            window.URL.revokeObjectURL(blobUrl);
+                        })
+                        .catch(err => {
+                            console.error('Download failed:', err);
+                            // Fallback direct link download
+                            const a = document.createElement('a');
+                            a.href = selectedImageSrc;
+                            a.target = '_blank';
+                            a.download = `${response.reference}.jpg`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                        });
+                },
+                onClose: function() {
+                    alert('Transaction was not completed, window closed.');
+                }
+            });
+            handler.openIframe();
         });
 
         const projectForm = document.getElementById('projectForm');
@@ -1075,7 +1113,7 @@
                 project_description: document.getElementById('projectDesc').value,
                 projectowner_whatsapp_number: document.getElementById('projectWhatsapp').value,
                 projectowner_email_address: document.getElementById('projectEmail').value,
-                to_email: 'asam72634@gmail.com'
+                to_email: 'ifcreatives@gmail.com'
             };
 
             emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', templateParams)
